@@ -7,9 +7,9 @@
 // ============================================================================
 // PIN DEFINITIONS (All on the VIN side of ESP32 DOIT DevKit V1)
 // ============================================================================
-constexpr uint8_t PIN_SENSOR_INLET = 27;  // D27 -> Sensor 1 (Inlet YF-S201 Yellow wire)
+constexpr uint8_t PIN_SENSOR_INLET  = 27; // D27 -> Sensor 1 (Inlet YF-S201 Yellow wire)
 constexpr uint8_t PIN_SENSOR_OUTLET = 26; // D26 -> Sensor 2 (Outlet YF-S201 Yellow wire)
-constexpr uint8_t PIN_RELAY_VALVE = 25;   // D25 -> Relay IN1 (12V Solenoid Valve control)
+constexpr uint8_t PIN_RELAY_VALVE   = 25; // D25 -> Relay IN1 (12V Solenoid Valve control)
 
 // ============================================================================
 // LOCAL WI-FI ACCESS POINT CREDENTIALS (100% Local - No Cloud / No Router Needed)
@@ -96,29 +96,16 @@ void applyRelayOutput(bool openValve)
   // Relay ON (energized) -> Solenoid Valve OPEN (water can flow)
   // Relay OFF            -> Solenoid Valve CLOSED (water shut off)
   bool relayEnergized = openValve;
+  uint8_t pinLevel;
   if (config.relayActiveLow)
   {
-    // On a 5V Active-LOW relay connected to a 3.3V ESP32 pin:
-    // OUTPUT HIGH (3.3V) still leaves 5.0V - 3.3V = 1.7V across the relay LED,
-    // which keeps the green light glowing!
-    // Switching pinMode to INPUT (open-drain high-impedance) drops current to 0 mA
-    // so the green light and relay switch 100% OFF!
-    if (relayEnergized)
-    {
-      pinMode(PIN_RELAY_VALVE, OUTPUT);
-      digitalWrite(PIN_RELAY_VALVE, LOW); // Green light ON, Relay ON (Valve OPEN)
-    }
-    else
-    {
-      digitalWrite(PIN_RELAY_VALVE, HIGH);
-      pinMode(PIN_RELAY_VALVE, INPUT); // Open circuit (0 mA) -> Green light OFF, Relay OFF (Valve CLOSED)
-    }
+    pinLevel = relayEnergized ? LOW : HIGH;
   }
   else
   {
-    pinMode(PIN_RELAY_VALVE, OUTPUT);
-    digitalWrite(PIN_RELAY_VALVE, relayEnergized ? HIGH : LOW);
+    pinLevel = relayEnergized ? HIGH : LOW;
   }
+  digitalWrite(PIN_RELAY_VALVE, pinLevel);
 }
 
 String formatUptime(uint32_t ms)
